@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoxGen AI Voice Studio - Expressions & Rewarded Ads</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            studio: {
+              950: '#07090e',
+              900: '#0e121d',
+              850: '#141a29',
+              800: '#1c2438',
+              700: '#2b3652',
+              600: '#3e4e75',
+            },
+            accent: {
+              500: '#6366f1',
+              600: '#4f46e5',
+              400: '#818cf8',
+            }
+          },
+          animation: {
+            'wave-bar': 'wave 1.1s ease-in-out infinite',
+          },
+          keyframes: {
+            wave: {
+              '0%, 100%': { height: '8px' },
+              '50%': { height: '38px' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Sleek Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0e121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2b3652;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4f46e5;
+    }
+
+    /* Ad Placeholder Shimmer Effect */
+    .ad-shimmer {
+      background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2.2s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
+</head>
+<body class="bg-studio-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 w-full border-b border-studio-800/80 bg-studio-950/85 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-500/20">
+          <div class="w-full h-full bg-studio-950 rounded-[10px] flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-5 h-5 text-indigo-400"></i>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">VoxGen Studio</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 uppercase">Expressions &lt;&gt;+</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Google AI Studio Gemini Voice Engine</p>
+        </div>
+      </div>
+
+      <!-- Header Controls: API Key & Dev Skip -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Get Free API Key external link -->
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" 
+          class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-studio-900 border border-studio-800 hover:border-slate-700 transition">
+          <i data-lucide="external-link" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Get Free Key</span>
+        </a>
+
+        <!-- API Key Status Button -->
+        <button id="apiKeyStatusBtn" onclick="openApiModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-studio-800 bg-studio-900/80 hover:bg-studio-850 transition text-xs font-medium">
+          <span id="apiKeyDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="apiKeyStatusText" class="text-slate-300">Enter API Key</span>
+        </button>
+
+        <!-- Dev Bypass Toggle -->
+        <button id="devSkipBtn" onclick="toggleDevBypass()" title="Dev Mode: Bypass Ads for Testing" class="px-2.5 py-1.5 rounded-lg border border-studio-800 text-xs font-mono text-slate-400 hover:text-white transition flex items-center gap-1.5">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span id="devBypassText" class="hidden sm:inline">Ads: Active</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN WORKSPACE ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: SCRIPT EDITOR WITH <>+ EXPRESSIONS & VOICE CONTROLS (7 COLS) -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Script & Expressions Card -->
+      <div class="bg-studio-900/90 border border-studio-800 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-md flex flex-col">
+        
+        <!-- Header Info -->
+        <div class="flex items-center justify-between pb-3 border-b border-studio-800/80 mb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="message-square" class="w-4 h-4 text-indigo-400"></i>
+            <h2 class="text-sm font-semibold tracking-wide text-slate-200 uppercase">Script & Expressions</h2>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-slate-400 font-mono">
+            <span>Chars: <strong id="charCount" class="text-indigo-400">0</strong></span>
+            <span>Words: <strong id="wordCount" class="text-indigo-400">0</strong></span>
+          </div>
+        </div>
+
+        <!-- ================= <>+ EXPRESSION & EMOTION TOOLBAR ================= -->
+        <div class="bg-studio-950/90 border border-studio-800 rounded-xl p-3 mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-slate-400 tracking-wider flex items-center gap-1 uppercase font-mono">
+              <span class="text-indigo-400 font-extrabold">&lt;&gt;+</span> Speech Expressions & Moods
+            </span>
+            <span class="text-[11px] text-slate-500 hidden sm:inline">Highlight text & click tag to wrap</span>
+          </div>
+
+          <!-- Expression Chips Row -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <!-- Custom Tag Button -->
+            <button onclick="openCustomTagModal()" class="px-2.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs font-mono font-medium flex items-center gap-1 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>&lt;&gt; Custom Tag</span>
+            </button>
+
+            <!-- Quick Emotion Chips -->
+            <button onclick="insertExpressionTag('whisper')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-indigo-400 font-bold">+</span> &lt;whisper&gt;
+            </button>
+            <button onclick="insertExpressionTag('excited')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-amber-400 font-bold">+</span> &lt;excited&gt;
+            </button>
+            <button onclick="insertExpressionTag('pause 1s', true)" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-cyan-400 font-bold">+</span> &lt;pause 1s&gt;
+            </button>
+            <button onclick="insertExpressionTag('dramatic')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-purple-400 font-bold">+</span> &lt;dramatic&gt;
+            </button>
+            <button onclick="insertExpressionTag('shout')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-rose-400 font-bold">+</span> &lt;shout&gt;
+            </button>
+            <button onclick="insertExpressionTag('gaming hype')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-emerald-400 font-bold">+</span> &lt;gaming hype&gt;
+            </button>
+            <button onclick="insertExpressionTag('sad')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-blue-400 font-bold">+</span> &lt;sad&gt;
+            </button>
+            <button onclick="insertExpressionTag('laugh')" class="px-2.5 py-1 rounded-lg bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 hover:border-slate-700 text-xs font-mono transition flex items-center gap-1">
+              <span class="text-yellow-400 font-bold">+</span> &lt;laugh&gt;
+            </button>
+          </div>
+        </div>
+
+        <!-- Sample Scripts Quick Select -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2.5 mb-2 text-xs">
+          <span class="text-slate-500 whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider">Examples:</span>
+          <button onclick="loadSample('gaming')" class="px-2.5 py-1 rounded-md bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 whitespace-nowrap transition">
+            🎮 Hindi Gaming Short
+          </button>
+          <button onclick="loadSample('tech')" class="px-2.5 py-1 rounded-md bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 whitespace-nowrap transition">
+            ⚡ Tech Reel / Updates
+          </button>
+          <button onclick="loadSample('mystery')" class="px-2.5 py-1 rounded-md bg-studio-850 hover:bg-studio-800 text-slate-300 border border-studio-800 whitespace-nowrap transition">
+            📖 Dark Mystery Story
+          </button>
+        </div>
+
+        <!-- Textarea -->
+        <div class="relative">
+          <textarea 
+            id="scriptInput" 
+            rows="8" 
+            placeholder="Apna dialogue ya script yahan likhein. Expression tags use karein jaise:&#10;'Bhai suno! <whisper>ek secret batata hu...</whisper> <pause 1s> <gaming hype>Aaj hum match jeet gaye!</gaming hype>'"
+            class="w-full bg-studio-950/80 border border-studio-800 rounded-xl p-4 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-sans text-sm sm:text-base leading-relaxed transition resize-y"
+            oninput="updateTextMetrics()"></textarea>
+          
+          <button onclick="clearScript()" class="absolute bottom-3 right-3 p-1.5 rounded-lg bg-studio-900/80 hover:bg-studio-800 text-slate-400 hover:text-rose-400 border border-studio-800 transition" title="Clear text">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Voice & Delivery Controls Card -->
+      <div class="bg-studio-900/90 border border-studio-800 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-md">
+        <div class="flex items-center gap-2 pb-3 border-b border-studio-800/80 mb-5">
+          <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
+          <h2 class="text-sm font-semibold tracking-wide text-slate-200 uppercase">Voice Persona & Pacing</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Voice Persona Dropdown -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Gemini Studio Voice</label>
+            <div class="relative">
+              <select id="voiceSelect" class="w-full bg-studio-950 border border-studio-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 appearance-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                <option value="Puck">Puck (Upbeat, Energetic Gamer)</option>
+                <option value="Charon">Charon (Deep, Cinematic, Authoritative)</option>
+                <option value="Aoede">Aoede (Melodic, Clear Narrator)</option>
+                <option value="Fenrir">Fenrir (Excitable, Fast, Punchy)</option>
+                <option value="Kore">Kore (Calm, Warm, Friendly)</option>
+                <option value="Zephyr">Zephyr (Bright, Tech Explainer)</option>
+                <option value="Orus">Orus (Firm, Serious Storyteller)</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none"></i>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5">Official high-fidelity Gemini speech voices</p>
+          </div>
+
+          <!-- Overall Tone Preset -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Style Preset</label>
+            <div class="relative">
+              <select id="toneSelect" class="w-full bg-studio-950 border border-studio-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 appearance-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                <option value="gaming">🎮 High Energy Gaming / YouTube Shorts</option>
+                <option value="creator">🎙️ Conversational Creator Hinglish</option>
+                <option value="news">📰 Fast-Paced Tech News Anchor</option>
+                <option value="dramatic">🌌 Deep Mystery & Storytelling</option>
+                <option value="natural">✨ Natural & Relaxed Narration</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none"></i>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5">Guides the global inflection of speech</p>
+          </div>
+        </div>
+
+        <!-- Pacing & Pitch Modifiers -->
+        <div class="mt-5 pt-4 border-t border-studio-800/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Speed / Pace</span>
+              <span id="speedValue" class="text-indigo-400 font-mono">1.0x</span>
+            </div>
+            <input type="range" id="speedSlider" min="0.75" max="1.5" step="0.05" value="1.0" 
+              class="w-full h-1.5 bg-studio-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              oninput="document.getElementById('speedValue').textContent = this.value + 'x'">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Pitch Modulation</span>
+              <span id="pitchValue" class="text-indigo-400 font-mono">Normal</span>
+            </div>
+            <input type="range" id="pitchSlider" min="0.8" max="1.2" step="0.1" value="1.0" 
+              class="w-full h-1.5 bg-studio-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              oninput="updatePitchLabel(this.value)">
+          </div>
+        </div>
+
+        <!-- GENERATE VOICE BUTTON (Triggers 2-Step Rewarded Ads) -->
+        <div class="mt-6">
+          <button 
+            id="startGenerateBtn" 
+            onclick="initiateVoiceGenerationFlow()" 
+            class="w-full py-4 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 flex items-center justify-center gap-3 transition transform active:scale-[0.99] group">
+            <i data-lucide="sparkles" class="w-5 h-5 text-indigo-200 group-hover:rotate-12 transition"></i>
+            <span class="text-base tracking-wide">Generate Voiceover</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-black/35 text-indigo-200 border border-white/10 font-normal">Watch 2 Short Ads</span>
+          </button>
+          <p class="text-center text-xs text-slate-500 mt-2">
+            Watch 2 quick 5-second sponsor messages to start studio synthesis.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: MASTER AUDIO PLAYER & RECENT TAKES (5 COLS) -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+
+      <!-- Studio Master Player Card -->
+      <div class="bg-studio-900/90 border border-studio-800 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-md relative overflow-hidden">
+        <div class="flex items-center justify-between pb-3 border-b border-studio-800/80 mb-5">
+          <div class="flex items-center gap-2">
+            <i data-lucide="radio" class="w-4 h-4 text-emerald-400"></i>
+            <h2 class="text-sm font-semibold tracking-wide text-slate-200 uppercase">Master Output</h2>
+          </div>
+          <span id="playerBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-studio-850 text-slate-400 border border-studio-800">Standby</span>
+        </div>
+
+        <!-- Visualizer Area -->
+        <div class="bg-studio-950 border border-studio-800/80 rounded-xl p-6 flex flex-col items-center justify-center min-h-[170px] relative overflow-hidden">
+          
+          <!-- Standby Placeholder -->
+          <div id="playerPlaceholder" class="flex flex-col items-center text-center p-4">
+            <div class="w-12 h-12 rounded-full bg-studio-900 border border-studio-800 flex items-center justify-center text-slate-500 mb-2">
+              <i data-lucide="headphones" class="w-6 h-6"></i>
+            </div>
+            <p class="text-sm font-medium text-slate-300">No Audio Generated Yet</p>
+            <p class="text-xs text-slate-500 mt-0.5">Write script with expressions and click Generate</p>
+          </div>
+
+          <!-- Active Animated Waveform -->
+          <div id="waveformVisualizer" class="hidden w-full flex items-center justify-center gap-1.5 h-16 py-2">
+            <span class="w-1.5 bg-indigo-500 rounded-full animate-wave-bar" style="animation-delay: 0.1s"></span>
+            <span class="w-1.5 bg-violet-400 rounded-full animate-wave-bar" style="animation-delay: 0.3s"></span>
+            <span class="w-1.5 bg-indigo-400 rounded-full animate-wave-bar" style="animation-delay: 0.2s"></span>
+            <span class="w-1.5 bg-cyan-400 rounded-full animate-wave-bar" style="animation-delay: 0.4s"></span>
+            <span class="w-1.5 bg-indigo-500 rounded-full animate-wave-bar" style="animation-delay: 0.15s"></span>
+            <span class="w-1.5 bg-violet-500 rounded-full animate-wave-bar" style="animation-delay: 0.35s"></span>
+            <span class="w-1.5 bg-indigo-400 rounded-full animate-wave-bar" style="animation-delay: 0.25s"></span>
+            <span class="w-1.5 bg-cyan-300 rounded-full animate-wave-bar" style="animation-delay: 0.45s"></span>
+            <span class="w-1.5 bg-indigo-500 rounded-full animate-wave-bar" style="animation-delay: 0.1s"></span>
+            <span class="w-1.5 bg-violet-400 rounded-full animate-wave-bar" style="animation-delay: 0.3s"></span>
+          </div>
+
+          <!-- Loading Synthesizer Spinner -->
+          <div id="generatingOverlay" class="hidden flex flex-col items-center justify-center p-4">
+            <div class="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-3"></div>
+            <p class="text-sm font-semibold text-indigo-300">Generating Expression Audio...</p>
+            <p class="text-xs text-slate-400 mt-1">Applying emotion tags via Gemini Studio TTS</p>
+          </div>
+        </div>
+
+        <!-- Custom Audio Track Controls -->
+        <div id="playerControlsSection" class="mt-4 opacity-50 pointer-events-none transition duration-300">
+          <div class="flex items-center gap-3 mb-3">
+            <span id="currentTimeLabel" class="text-xs font-mono text-slate-400 min-w-[36px]">0:00</span>
+            <input type="range" id="audioScrubber" min="0" max="100" value="0" 
+              class="w-full h-1.5 bg-studio-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              oninput="seekAudio(this.value)">
+            <span id="durationLabel" class="text-xs font-mono text-slate-400 min-w-[36px]">0:00</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <button id="mainPlayPauseBtn" onclick="togglePlayPause()" class="flex-1 py-2.5 px-4 rounded-xl bg-studio-800 hover:bg-studio-700 text-white font-semibold text-sm flex items-center justify-center gap-2 border border-studio-700 transition">
+              <i id="playPauseIcon" data-lucide="play" class="w-4 h-4 text-indigo-400"></i>
+              <span id="playPauseText">Play Master</span>
+            </button>
+
+            <button id="downloadWavBtn" onclick="downloadCurrentAudio()" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Download .WAV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden Native Audio Player Element -->
+        <audio id="nativeAudioElement" class="hidden"></audio>
+      </div>
+
+      <!-- Recent Generation Takes History -->
+      <div class="bg-studio-900/90 border border-studio-800 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-md flex-1 flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-studio-800/80 mb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
+            <h2 class="text-sm font-semibold tracking-wide text-slate-200 uppercase">Recent Takes</h2>
+          </div>
+          <button onclick="clearHistory()" class="text-[11px] text-slate-500 hover:text-rose-400 transition">Clear History</button>
+        </div>
+
+        <div id="historyList" class="flex-1 overflow-y-auto max-h-[290px] flex flex-col gap-2.5 pr-1">
+          <div id="noHistoryPlaceholder" class="text-center py-8 text-slate-600 text-xs">
+            Your generated audio takes will appear here for fast replay & download.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= 2-STEP REWARDED ADS GATEWAY MODAL ================= -->
+  <div id="rewardedAdModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-studio-900 border border-studio-700/80 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-studio-800 flex items-center justify-between bg-studio-950/70">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping"></span>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              Sponsored Gateway: Generating Voice
+            </h3>
+            <p class="text-[11px] text-slate-400">Viewing 2 short sponsors keeps this studio free</p>
+          </div>
+        </div>
+        <div class="px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-semibold" id="adStepBadge">
+          Ad 1 of 2
+        </div>
+      </div>
+
+      <!-- Modal Body (Ad Content Slot) -->
+      <div class="p-6 flex flex-col items-center">
+        
+        <!-- Timer & Progress Bar -->
+        <div class="w-full mb-5">
+          <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-1.5">
+            <span id="adStatusMessage">Unlocking speech synthesis pipeline...</span>
+            <span id="countdownTimer" class="font-bold text-indigo-400 text-sm">5s</span>
+          </div>
+          <div class="w-full h-2 bg-studio-950 rounded-full overflow-hidden border border-studio-800">
+            <div id="adProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 w-0 transition-all duration-100 ease-linear"></div>
+          </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- AD SLOT CONTAINER: PASTE YOUR GOOGLE ADSENSE / MONETAG / ADSTERRA HERE -->
+        <!-- =================================================================== -->
+        <div id="adDisplayContainer" class="w-full min-h-[220px] rounded-xl border-2 border-dashed border-studio-700/80 bg-studio-950 p-4 flex flex-col items-center justify-center text-center relative overflow-hidden ad-shimmer">
+          
+          <!-- STEP 1 SPONSOR CREATIVE PLACEHOLDER -->
+          <div id="adStep1Content" class="flex flex-col items-center">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold border border-amber-500/30 uppercase tracking-wider mb-2">Sponsor Creative #1</span>
+            <div class="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-2">
+              <i data-lucide="zap" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-200">Ultra Fast Cloud Rendering</h4>
+            <p class="text-xs text-slate-400 max-w-xs mt-1">Scale your AI workflows effortlessly with zero cold starts and global edge clusters.</p>
+            <div class="mt-3 px-3 py-1 rounded bg-studio-800 text-[11px] text-slate-400 border border-studio-700">
+              Ad Slot 1 / 2 Active
+            </div>
+          </div>
+
+          <!-- STEP 2 SPONSOR CREATIVE PLACEHOLDER -->
+          <div id="adStep2Content" class="hidden flex flex-col items-center">
+            <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[10px] font-bold border border-cyan-500/30 uppercase tracking-wider mb-2">Sponsor Creative #2</span>
+            <div class="w-12 h-12 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-2">
+              <i data-lucide="volume-2" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-200">Studio Audio Master Pro</h4>
+            <p class="text-xs text-slate-400 max-w-xs mt-1">Spatial sound enhancers and automatic noise reduction plug-ins for video creators.</p>
+            <div class="mt-3 px-3 py-1 rounded bg-studio-800 text-[11px] text-slate-400 border border-studio-700">
+              Ad Slot 2 / 2 Active
+            </div>
+          </div>
+
+        </div>
+        <!-- ================= END AD DISPLAY CONTAINER ================= -->
+
+        <p class="text-[11px] text-slate-500 mt-4 text-center">
+          Voice generation begins immediately once both sponsors complete.
+        </p>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 border-t border-studio-800 bg-studio-950/70 flex items-center justify-between">
+        <button onclick="closeAdModal(false)" class="text-xs text-slate-500 hover:text-slate-300 transition">
+          Cancel
+        </button>
+
+        <button id="adActionBtn" disabled class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-studio-800 border border-studio-700 opacity-60 cursor-not-allowed transition">
+          Please wait... (<span id="adBtnSec">5</span>s)
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= CUSTOM TAG MODAL (No alert/prompt) ================= -->
+  <div id="customTagModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-studio-900 border border-studio-800 w-full max-w-md rounded-2xl shadow-2xl p-6 relative">
+      <button onclick="closeCustomTagModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+          <i data-lucide="tag" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Insert Custom Expression Tag</h3>
+          <p class="text-xs text-slate-400">Add any custom emotion, pacing, or style tag</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Tag Name or Direction</label>
+          <input 
+            type="text" 
+            id="customTagInput" 
+            placeholder="e.g., sarcastic, robot, fast whisper, angry shout, soft" 
+            class="w-full bg-studio-950 border border-studio-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono">
+          <p class="text-[11px] text-slate-500 mt-1">If text is selected in your script, it will be wrapped like &lt;tag&gt;text&lt;/tag&gt;.</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button onclick="closeCustomTagModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white">
+            Cancel
+          </button>
+          <button onclick="applyCustomTag()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition">
+            Insert Tag
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= API KEY SETTINGS MODAL ================= -->
+  <div id="apiConfigModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-studio-900 border border-studio-800 w-full max-w-md rounded-2xl shadow-2xl p-6 relative">
+      <button onclick="closeApiModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+          <i data-lucide="key" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Google AI Studio API Key</h3>
+          <p class="text-xs text-slate-400">Enter your free Gemini Developer Key</p>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-studio-950 border border-studio-800/80 mb-4 text-xs text-slate-300 space-y-2">
+        <p class="font-medium text-indigo-400 flex items-center gap-1.5">
+          <i data-lucide="help-circle" class="w-4 h-4"></i> How to get your free key:
+        </p>
+        <ol class="list-decimal list-inside space-y-1 text-slate-400 text-[11px] leading-relaxed">
+          <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline font-medium hover:text-indigo-300">aistudio.google.com/app/apikey</a>.</li>
+          <li>Click <strong>"Create API key"</strong>.</li>
+          <li>Copy and paste it below. (Saved only on your browser).</li>
+        </ol>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Your API Key</label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="apiKeyInput" 
+              placeholder="AIzaSy..." 
+              class="w-full bg-studio-950 border border-studio-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono pr-10">
+            <button onclick="toggleKeyVisibility()" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300">
+              <i id="keyVisibilityIcon" data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button onclick="closeApiModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white">
+            Cancel
+          </button>
+          <button onclick="saveApiKey()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition">
+            Save Key
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ================= JAVASCRIPT & AUDIO ENGINE ================= -->
+  <script>
+    // Global Application State
+    const STATE = {
+      apiKey: localStorage.getItem('voxgen_user_key') || '',
+      currentBlob: null,
+      currentAudioUrl: null,
+      currentVoice: 'Puck',
+      clipsHistory: [],
+      devBypassAds: false,
+      isPlaying: false,
+      adTimer: null,
+      currentAdStep: 1,
+    };
+
+    // DOM Elements
+    const scriptInput = document.getElementById('scriptInput');
+    const charCount = document.getElementById('charCount');
+    const wordCount = document.getElementById('wordCount');
+    const nativeAudio = document.getElementById('nativeAudioElement');
+    const mainPlayPauseBtn = document.getElementById('mainPlayPauseBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const playPauseText = document.getElementById('playPauseText');
+    const audioScrubber = document.getElementById('audioScrubber');
+    const currentTimeLabel = document.getElementById('currentTimeLabel');
+    const durationLabel = document.getElementById('durationLabel');
+    const playerControlsSection = document.getElementById('playerControlsSection');
+    const playerPlaceholder = document.getElementById('playerPlaceholder');
+    const waveformVisualizer = document.getElementById('waveformVisualizer');
+    const generatingOverlay = document.getElementById('generatingOverlay');
+    const playerBadge = document.getElementById('playerBadge');
+    const historyList = document.getElementById('historyList');
+
+    // Onload Setup
+    window.onload = function() {
+      updateApiKeyStatusUI();
+      updateTextMetrics();
+      lucide.createIcons();
+      setupAudioListeners();
+    };
+
+    // --- Expression Tag Insertion Engine ---
+    function insertExpressionTag(tagName, isSelfClosing = false) {
+      const textarea = scriptInput;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      const selected = text.substring(start, end);
+
+      let insertion = '';
+      let newSelectionStart = 0;
+      let newSelectionEnd = 0;
+
+      if (isSelfClosing) {
+        insertion = `<${tagName}> `;
+        newSelectionStart = start + insertion.length;
+        newSelectionEnd = newSelectionStart;
+      } else {
+        if (selected.length > 0) {
+          insertion = `<${tagName}>${selected}</${tagName}>`;
+          newSelectionStart = start + tagName.length + 2;
+          newSelectionEnd = newSelectionStart + selected.length;
+        } else {
+          insertion = `<${tagName}>yahan bolo</${tagName}>`;
+          newSelectionStart = start + tagName.length + 2;
+          newSelectionEnd = newSelectionStart + 10; // highlights "yahan bolo"
+        }
+      }
+
+      textarea.value = text.substring(0, start) + insertion + text.substring(end);
+      textarea.focus();
+      textarea.setSelectionRange(newSelectionStart, newSelectionEnd);
+      updateTextMetrics();
+      showToast(`Added <${tagName}> expression tag!`, "info");
+    }
+
+    // Custom Tag Modal Controls
+    function openCustomTagModal() {
+      document.getElementById('customTagInput').value = '';
+      document.getElementById('customTagModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('customTagInput').focus(), 50);
+    }
+
+    function closeCustomTagModal() {
+      document.getElementById('customTagModal').classList.add('hidden');
+    }
+
+    function applyCustomTag() {
+      const tag = document.getElementById('customTagInput').value.trim().replace(/[<>]/g, '');
+      if (!tag) {
+        showToast("Please enter a tag name", "warning");
+        return;
+      }
+      closeCustomTagModal();
+      insertExpressionTag(tag, false);
+    }
+
+    // --- Sample Script Presets ---
+    const SAMPLES = {
+      gaming: "Arey bhai bhai! <gaming hype>Ye kya zabardast clutch maara hai yaar!</gaming hype> <pause 1s> <whisper>Kisi ko pata nahi chala ki hum peeche se aaye the.</whisper> Fatak se like aur subscribe karo!",
+      tech: "<excited>Google AI Studio ka naya voice engine sach me kamaal hai!</excited> <pause 1s> Isme aap text ke beech me <dramatic>expressions aur emotions</dramatic> add karke ultra-realistic voiceover bana sakte ho.",
+      mystery: "<whisper>Raat ke 12:45 ho rahe the...</whisper> <pause 1s> <dramatic>Achanak purane band kamre se ajeeb si aawaazein aane lagi.</dramatic> <pause 1s> Us darwaze ke peeche kaun tha?"
+    };
+
+    function loadSample(key) {
+      if (SAMPLES[key]) {
+        scriptInput.value = SAMPLES[key];
+        updateTextMetrics();
+        showToast("Sample script with expressions loaded!", "info");
+      }
+    }
+
+    function clearScript() {
+      scriptInput.value = '';
+      updateTextMetrics();
+    }
+
+    function updateTextMetrics() {
+      const text = scriptInput.value;
+      charCount.textContent = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      wordCount.textContent = words;
+    }
+
+    function updatePitchLabel(val) {
+      const label = document.getElementById('pitchValue');
+      if (val < 1.0) label.textContent = 'Deeper';
+      else if (val > 1.0) label.textContent = 'Higher';
+      else label.textContent = 'Normal';
+    }
+
+    // --- API Key Modal & Settings ---
+    function openApiModal() {
+      document.getElementById('apiKeyInput').value = STATE.apiKey;
+      document.getElementById('apiConfigModal').classList.remove('hidden');
+    }
+
+    function closeApiModal() {
+      document.getElementById('apiConfigModal').classList.add('hidden');
+    }
+
+    function toggleKeyVisibility() {
+      const input = document.getElementById('apiKeyInput');
+      const icon = document.getElementById('keyVisibilityIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    function saveApiKey() {
+      const val = document.getElementById('apiKeyInput').value.trim();
+      STATE.apiKey = val;
+      localStorage.setItem('voxgen_user_key', val);
+      updateApiKeyStatusUI();
+      closeApiModal();
+      showToast(val ? "API Key connected!" : "API Key cleared. Using fallback synthesizer.", "success");
+    }
+
+    function updateApiKeyStatusUI() {
+      const dot = document.getElementById('apiKeyDot');
+      const text = document.getElementById('apiKeyStatusText');
+      if (STATE.apiKey) {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        text.textContent = "Gemini API Active";
+        text.className = "text-emerald-400 font-medium";
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+        text.textContent = "Enter API Key";
+        text.className = "text-slate-300";
+      }
+    }
+
+    function toggleDevBypass() {
+      STATE.devBypassAds = !STATE.devBypassAds;
+      const text = document.getElementById('devBypassText');
+      if (STATE.devBypassAds) {
+        text.textContent = "Ads: Bypassed";
+        showToast("Dev Mode: Ads will be skipped during testing", "info");
+      } else {
+        text.textContent = "Ads: Active";
+        showToast("2-Step Rewarded Ads enabled", "info");
+      }
+    }
+
+    // --- REWARDED ADS GATEWAY FLOW ---
+    function initiateVoiceGenerationFlow() {
+      const script = scriptInput.value.trim();
+      if (!script) {
+        showToast("Please enter or load a voiceover script first!", "warning");
+        scriptInput.focus();
+        return;
+      }
+
+      if (!STATE.apiKey) {
+        showToast("Tip: Add your free Google AI Studio API key for high-quality voices!", "info");
+      }
+
+      // If Developer Mode is on, skip straight to generation
+      if (STATE.devBypassAds) {
+        startVoiceGenerationEngine();
+        return;
+      }
+
+      // Show 2-Step Rewarded Ad Modal
+      openRewardedAdModal();
+    }
+
+    function openRewardedAdModal() {
+      const modal = document.getElementById('rewardedAdModal');
+      modal.classList.remove('hidden');
+      startAdStep(1);
+    }
+
+    function closeAdModal(completed = false) {
+      if (STATE.adTimer) clearInterval(STATE.adTimer);
+      document.getElementById('rewardedAdModal').classList.add('hidden');
+      if (!completed) {
+        showToast("Ad cancelled. Watch both ads to generate voiceover.", "warning");
+      }
+    }
+
+    function startAdStep(step) {
+      STATE.currentAdStep = step;
+      const stepBadge = document.getElementById('adStepBadge');
+      const statusMessage = document.getElementById('adStatusMessage');
+      const ad1Content = document.getElementById('adStep1Content');
+      const ad2Content = document.getElementById('adStep2Content');
+      const progressBar = document.getElementById('adProgressBar');
+      const timerLabel = document.getElementById('countdownTimer');
+      const actionBtn = document.getElementById('adActionBtn');
+      const btnSec = document.getElementById('adBtnSec');
+
+      stepBadge.textContent = `Ad ${step} of 2`;
+      
+      if (step === 1) {
+        ad1Content.classList.remove('hidden');
+        ad2Content.classList.add('hidden');
+        statusMessage.textContent = "Sponsor 1 of 2: Unlocking studio audio pipeline...";
+      } else {
+        ad1Content.classList.add('hidden');
+        ad2Content.classList.remove('hidden');
+        statusMessage.textContent = "Sponsor 2 of 2: Finalizing Gemini voice synthesizer...";
+      }
+
+      let secondsLeft = 5;
+      const totalSeconds = 5;
+      timerLabel.textContent = `${secondsLeft}s`;
+      btnSec.textContent = secondsLeft;
+      actionBtn.disabled = true;
+      actionBtn.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-studio-800 border border-studio-700 opacity-60 cursor-not-allowed transition";
+      actionBtn.innerHTML = `Please wait... (<span id="adBtnSec">${secondsLeft}</span>s)`;
+
+      if (STATE.adTimer) clearInterval(STATE.adTimer);
+
+      const intervalDuration = 100;
+      let elapsedMs = 0;
+      const totalMs = totalSeconds * 1000;
+
+      STATE.adTimer = setInterval(() => {
+        elapsedMs += intervalDuration;
+        const remaining = Math.max(0, Math.ceil((totalMs - elapsedMs) / 1000));
+        timerLabel.textContent = `${remaining}s`;
+        const currentBtnSec = document.getElementById('adBtnSec');
+        if (currentBtnSec) currentBtnSec.textContent = remaining;
+
+        let baseProgress = (step - 1) * 50;
+        let stepProgress = (elapsedMs / totalMs) * 50;
+        progressBar.style.width = `${Math.min(100, baseProgress + stepProgress)}%`;
+
+        if (elapsedMs >= totalMs) {
+          clearInterval(STATE.adTimer);
+          if (step === 1) {
+            showToast("Ad 1 completed! Loading Ad 2 of 2...", "info");
+            setTimeout(() => startAdStep(2), 400);
+          } else {
+            // Reward fully unlocked!
+            timerLabel.textContent = "Unlocked!";
+            actionBtn.disabled = false;
+            actionBtn.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition cursor-pointer";
+            actionBtn.innerHTML = "<span>Generating Voice...</span>";
+
+            showToast("Sponsor complete! Generating your voiceover...", "success");
+            setTimeout(() => {
+              closeAdModal(true);
+              startVoiceGenerationEngine();
+            }, 600);
+          }
+        }
+      }, intervalDuration);
+    }
+
+    // --- GEMINI TTS ENGINE & EXPRESSION INTERPRETATION ---
+    async function startVoiceGenerationEngine() {
+      const script = scriptInput.value.trim();
+      const voice = document.getElementById('voiceSelect').value;
+      const tone = document.getElementById('toneSelect').value;
+      const speed = parseFloat(document.getElementById('speedSlider').value);
+
+      // UI status updates
+      playerPlaceholder.classList.add('hidden');
+      waveformVisualizer.classList.add('hidden');
+      generatingOverlay.classList.remove('hidden');
+      playerBadge.textContent = "Rendering...";
+      playerBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 animate-pulse";
+      document.getElementById('startGenerateBtn').disabled = true;
+
+      try {
+        if (STATE.apiKey) {
+          await generateVoiceViaGemini(script, voice, tone, speed);
+        } else {
+          await generateVoiceViaFallback(script, voice, tone, speed);
+        }
+      } catch (err) {
+        console.error("Gemini TTS Error:", err);
+        showToast("Gemini Error: " + (err.message || 'Key limit reached') + ". Using fallback synthesizer.", "warning");
+        await generateVoiceViaFallback(script, voice, tone, speed);
+      } finally {
+        generatingOverlay.classList.add('hidden');
+        document.getElementById('startGenerateBtn').disabled = false;
+      }
+    }
+
+    // Call Gemini Multimodal Audio Model with Expression Directives
+    async function generateVoiceViaGemini(script, voiceName, toneKey, speed) {
+      const apiKey = STATE.apiKey;
+      // Using gemini-2.5-flash-preview-tts audio generation endpoint
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+      let toneDescription = "natural pacing";
+      if (toneKey === "gaming") toneDescription = "very high energy, enthusiastic gamer creator style";
+      else if (toneKey === "creator") toneDescription = "friendly, conversational Hinglish creator style";
+      else if (toneKey === "news") toneDescription = "sharp, punchy tech news anchor style";
+      else if (toneKey === "dramatic") toneDescription = "cinematic, mysterious and suspenseful storyteller style";
+
+      // Explicit instruction to parse inline audio direction tags like <whisper>, <pause 1s>, etc.
+      const promptInstruction = `You are an elite voice actor. Read the following script aloud with full emotional fidelity, exactly respecting all inline emotion and pacing tags such as <whisper>, <excited>, <pause 1s>, <dramatic>, <shout>, <gaming hype>, <sad>, <laugh>, etc. 
+Speaking style: ${toneDescription}.
+Pronounce Hindi, Hinglish, and English naturally without mechanical artifacts.
+
+Script:
+${script}`;
+
+      const payload = {
+        contents: [{
+          parts: [{ text: promptInstruction }]
+        }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: voiceName }
+            }
+          }
+        }
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      const part = result?.candidates?.[0]?.content?.parts?.[0];
+      const audioBase64 = part?.inlineData?.data;
+      const mimeType = part?.inlineData?.mimeType || 'audio/L16;rate=24000';
+
+      if (!audioBase64) {
+        throw new Error("No audio bytes received from Gemini.");
+      }
+
+      let sampleRate = 24000;
+      const match = mimeType.match(/rate=(\d+)/);
+      if (match && match[1]) sampleRate = parseInt(match[1], 10);
+
+      // Convert Base64 PCM16 into standard playable WAV
+      const pcm16 = base64ToInt16(audioBase64);
+      const wavBlob = pcm16ToWavBlob(pcm16, sampleRate, 1);
+
+      loadAudioBlobIntoPlayer(wavBlob, script, voiceName, `Gemini Studio (${voiceName})`);
+      showToast("Voice generated with expressions!", "success");
+    }
+
+    // Web Speech Synthesis Fallback
+    async function generateVoiceViaFallback(script, voiceName, toneKey, speed) {
+      if (!('speechSynthesis' in window)) {
+        showToast("Speech synthesis not supported in this browser.", "error");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      // Strip tags for browser TTS
+      const cleanScript = script.replace(/<[^>]*>/g, ' ');
+      const utterance = new SpeechSynthesisUtterance(cleanScript);
+      utterance.rate = speed;
+      utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
+
+      const voices = window.speechSynthesis.getVoices();
+      const matchVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN')) || voices[0];
+      if (matchVoice) utterance.voice = matchVoice;
+
+      const wavBlob = createSynthesizedToneWav(cleanScript.length);
+      loadAudioBlobIntoPlayer(wavBlob, script, voiceName, "Browser TTS Engine");
+
+      window.speechSynthesis.speak(utterance);
+      showToast("Generated with Browser TTS (Enter API Key for Gemini Expressions)", "info");
+    }
+
+    // --- PCM16 to RIFF WAV CONVERTER ---
+    function base64ToInt16(base64) {
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return new Int16Array(bytes.buffer);
+    }
+
+    function pcm16ToWavBlob(pcm16Array, sampleRate = 24000, numChannels = 1) {
+      const buffer = new ArrayBuffer(44 + pcm16Array.length * 2);
+      const view = new DataView(buffer);
+
+      // RIFF header
+      writeAsciiString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + pcm16Array.length * 2, true);
+      writeAsciiString(view, 8, 'WAVE');
+
+      // fmt subchunk
+      writeAsciiString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true); // PCM Format
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * numChannels * 2, true);
+      view.setUint16(32, numChannels * 2, true);
+      view.setUint16(34, 16, true); // Bits per sample
+
+      // data subchunk
+      writeAsciiString(view, 36, 'data');
+      view.setUint32(40, pcm16Array.length * 2, true);
+
+      let offset = 44;
+      for (let i = 0; i < pcm16Array.length; i++, offset += 2) {
+        view.setInt16(offset, pcm16Array[i], true);
+      }
+
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function writeAsciiString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+
+    function createSynthesizedToneWav(durationFactor) {
+      const sampleRate = 22050;
+      const duration = Math.min(5, Math.max(2, Math.floor(durationFactor / 18)));
+      const numSamples = sampleRate * duration;
+      const pcm16 = new Int16Array(numSamples);
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        pcm16[i] = Math.sin(2 * Math.PI * 440 * t) * 6000;
+      }
+      return pcm16ToWavBlob(pcm16, sampleRate, 1);
+    }
+
+    // --- AUDIO PLAYER & CONTROLS ---
+    function loadAudioBlobIntoPlayer(blob, script, voice, engineBadge) {
+      STATE.currentBlob = blob;
+      if (STATE.currentAudioUrl) URL.revokeObjectURL(STATE.currentAudioUrl);
+      STATE.currentAudioUrl = URL.createObjectURL(blob);
+      STATE.currentVoice = voice;
+
+      nativeAudio.src = STATE.currentAudioUrl;
+      nativeAudio.load();
+
+      playerPlaceholder.classList.add('hidden');
+      waveformVisualizer.classList.remove('hidden');
+      playerControlsSection.classList.remove('opacity-50', 'pointer-events-none');
+
+      playerBadge.textContent = engineBadge;
+      playerBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+      addToHistory({
+        id: Date.now(),
+        script: script.slice(0, 75) + (script.length > 75 ? '...' : ''),
+        voice: voice,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        url: STATE.currentAudioUrl
+      });
+
+      nativeAudio.play().catch(() => {});
+    }
+
+    function setupAudioListeners() {
+      nativeAudio.addEventListener('play', () => {
+        STATE.isPlaying = true;
+        playPauseText.textContent = "Pause Master";
+        playPauseIcon.setAttribute('data-lucide', 'pause');
+        lucide.createIcons();
+      });
+
+      nativeAudio.addEventListener('pause', () => {
+        STATE.isPlaying = false;
+        playPauseText.textContent = "Play Master";
+        playPauseIcon.setAttribute('data-lucide', 'play');
+        lucide.createIcons();
+      });
+
+      nativeAudio.addEventListener('timeupdate', () => {
+        const cur = nativeAudio.currentTime;
+        const dur = nativeAudio.duration || 0;
+        currentTimeLabel.textContent = formatTime(cur);
+        if (dur > 0) {
+          durationLabel.textContent = formatTime(dur);
+          audioScrubber.value = (cur / dur) * 100;
+        }
+      });
+
+      nativeAudio.addEventListener('ended', () => {
+        STATE.isPlaying = false;
+        playPauseText.textContent = "Play Master";
+        playPauseIcon.setAttribute('data-lucide', 'play');
+        lucide.createIcons();
+        audioScrubber.value = 0;
+      });
+    }
+
+    function togglePlayPause() {
+      if (!nativeAudio.src) return;
+      if (STATE.isPlaying) nativeAudio.pause();
+      else nativeAudio.play();
+    }
+
+    function seekAudio(percent) {
+      if (nativeAudio.duration) {
+        nativeAudio.currentTime = (percent / 100) * nativeAudio.duration;
+      }
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function downloadCurrentAudio() {
+      if (!STATE.currentBlob) {
+        showToast("No audio file ready to download!", "warning");
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = STATE.currentAudioUrl;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      a.download = `voxgen-${STATE.currentVoice.toLowerCase()}-${timestamp}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("Downloading studio .wav file!", "success");
+    }
+
+    // --- RECENT TAKES HISTORY ---
+    function addToHistory(item) {
+      STATE.clipsHistory.unshift(item);
+      if (STATE.clipsHistory.length > 8) STATE.clipsHistory.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const placeholder = document.getElementById('noHistoryPlaceholder');
+      if (STATE.clipsHistory.length === 0) {
+        placeholder.classList.remove('hidden');
+        return;
+      }
+      placeholder.classList.add('hidden');
+
+      const items = historyList.querySelectorAll('.history-item');
+      items.forEach(el => el.remove());
+
+      STATE.clipsHistory.forEach(clip => {
+        const div = document.createElement('div');
+        div.className = "history-item bg-studio-950/70 border border-studio-800 rounded-xl p-3 flex items-center justify-between gap-3 text-xs hover:border-studio-700 transition";
+        div.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-bold text-indigo-400 font-mono">${clip.voice}</span>
+              <span class="text-[10px] text-slate-500">${clip.time}</span>
+            </div>
+            <p class="text-slate-300 truncate">${clip.script}</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="playHistoryClip(${clip.id})" class="p-1.5 rounded-lg bg-studio-800 hover:bg-studio-700 text-indigo-400 hover:text-white transition" title="Play">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="downloadHistoryClip(${clip.id})" class="p-1.5 rounded-lg bg-studio-800 hover:bg-emerald-600 text-slate-400 hover:text-white transition" title="Download">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        historyList.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
+    function playHistoryClip(id) {
+      const clip = STATE.clipsHistory.find(c => c.id === id);
+      if (clip && clip.url) {
+        nativeAudio.src = clip.url;
+        nativeAudio.play();
+        playerControlsSection.classList.remove('opacity-50', 'pointer-events-none');
+        playerBadge.textContent = "Replaying Clip";
+      }
+    }
+
+    function downloadHistoryClip(id) {
+      const clip = STATE.clipsHistory.find(c => c.id === id);
+      if (clip && clip.url) {
+        const a = document.createElement('a');
+        a.href = clip.url;
+        a.download = `voxgen-${clip.voice}-${id}.wav`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    }
+
+    function clearHistory() {
+      STATE.clipsHistory = [];
+      renderHistory();
+      showToast("History cleared", "info");
+    }
+
+    // --- TOAST NOTIFICATIONS (No native alert()) ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let border = "border-indigo-500/40 bg-studio-900";
+      let icon = "info";
+      let color = "text-indigo-400";
+
+      if (type === 'success') {
+        border = "border-emerald-500/40 bg-studio-900";
+        icon = "check-circle";
+        color = "text-emerald-400";
+      } else if (type === 'warning') {
+        border = "border-amber-500/40 bg-studio-900";
+        icon = "alert-triangle";
+        color = "text-amber-400";
+      } else if (type === 'error') {
+        border = "border-rose-500/40 bg-studio-900";
+        icon = "alert-octagon";
+        color = "text-rose-400";
+      }
+
+      toast.className = `flex items-center gap-2.5 px-4 py-3 rounded-xl border ${border} text-slate-200 text-xs shadow-2xl backdrop-blur-xl transition-all duration-300 transform translate-y-2 pointer-events-auto max-w-sm`;
+      toast.innerHTML = `
+        <i data-lucide="${icon}" class="w-4 h-4 ${color} flex-shrink-0"></i>
+        <span class="flex-1 leading-snug">${message}</span>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2'));
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
