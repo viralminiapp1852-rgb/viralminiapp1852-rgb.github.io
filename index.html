@@ -137,7 +137,7 @@
     <!-- Script Editor Card -->
     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
       
-      <!-- Expression Tags Toolbar (AI Studio Style) -->
+      <!-- Expression Tags Toolbar -->
       <div class="flex flex-col gap-1.5">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
@@ -234,7 +234,7 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
       <!-- Step Content -->
       <div class="py-4 flex flex-col items-center text-center gap-3">
         <p id="adDescription" class="text-xs text-slate-300">
-          Voice generate karne ke liye niche sponsor ad link open karein. 5 second me automatic agla step unlock hoga.
+          Sponsor ad link open karein. 5 second me automatic agla step unlock ho jayega (Wapas aane par progress save rahegi).
         </p>
 
         <!-- Ad Action Trigger Box -->
@@ -244,23 +244,23 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
           </div>
           <div>
             <h4 id="adActionTitle" class="text-xs font-bold text-white">Sponsor Link 1 Required</h4>
-            <p class="text-[11px] text-slate-400 mt-0.5">Click karke 5 second timer complete karein</p>
+            <p id="adActionSubtitle" class="text-[11px] text-slate-400 mt-0.5">Click karke 5 second open rakhein</p>
           </div>
 
-          <button id="openAdBtn" onclick="handleAdClick()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2">
+          <a id="openAdLink" href="https://uplcm.com/4/12043328" target="_blank" rel="noopener noreferrer" onclick="handleAdClick(event)" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 text-decoration-none">
             <i class="fa-solid fa-external-link text-[11px]"></i>
             <span id="openAdBtnText">Open Sponsor Ad 1</span>
-          </button>
+          </a>
         </div>
 
         <!-- Timer / Progress -->
         <div id="timerContainer" class="w-full hidden flex-col gap-1.5 mt-1">
           <div class="flex justify-between text-[11px] text-slate-400">
-            <span>Timer Progress:</span>
-            <span id="timerSecondsText" class="text-indigo-400 font-bold">5s</span>
+            <span>Status:</span>
+            <span id="timerSecondsText" class="text-indigo-400 font-bold">Verifying...</span>
           </div>
           <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div id="timerBar" class="bg-indigo-500 h-full w-0 transition-all duration-1000 ease-linear"></div>
+            <div id="timerBar" class="bg-indigo-500 h-full w-0 transition-all duration-500 ease-linear"></div>
           </div>
         </div>
       </div>
@@ -284,7 +284,7 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
       </div>
 
       <p class="text-xs text-slate-400 mb-3 leading-relaxed">
-        Apni Gemini API key yahan enter karein. Yeh key aapke phone browser me hi save rahegi:
+        Apni Gemini API key yahan enter karein. Yeh key aapke phone me save rahegi:
       </p>
 
       <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-2 focus:outline-none focus:border-indigo-500">
@@ -310,13 +310,10 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
 
   <!-- App Logic -->
   <script>
-    // USER'S MONETAG DIRECT LINK
     const MONETAG_DIRECT_LINK = "https://uplcm.com/4/12043328";
 
     let adsEnabled = true;
-    let currentAdStep = 1;
     let timerInterval = null;
-    let remainingTime = 5;
 
     // Elements
     const scriptInput = document.getElementById('scriptInput');
@@ -325,10 +322,11 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
     const adModal = document.getElementById('adModal');
     const adStepIndicator = document.getElementById('adStepIndicator');
     const openAdBtnText = document.getElementById('openAdBtnText');
+    const adActionTitle = document.getElementById('adActionTitle');
     const timerContainer = document.getElementById('timerContainer');
     const timerBar = document.getElementById('timerBar');
     const timerSecondsText = document.getElementById('timerSecondsText');
-    const openAdBtn = document.getElementById('openAdBtn');
+    const openAdLink = document.getElementById('openAdLink');
     const playerCard = document.getElementById('playerCard');
     const audioElement = document.getElementById('audioElement');
     const playPauseBtn = document.getElementById('playPauseBtn');
@@ -338,46 +336,55 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
     const totalDurationText = document.getElementById('totalDuration');
     const downloadLink = document.getElementById('downloadLink');
 
-    // Count updates
+    // Restore text and state from LocalStorage on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedScript = localStorage.getItem('voice_studio_saved_script');
+      if (savedScript) {
+        scriptInput.value = savedScript;
+        updateCounts();
+      }
+      checkPendingAdState();
+    });
+
+    // Auto-save script on every keystroke
     scriptInput.addEventListener('input', () => {
+      localStorage.setItem('voice_studio_saved_script', scriptInput.value);
+      updateCounts();
+    });
+
+    function updateCounts() {
       const text = scriptInput.value.trim();
       charCount.textContent = text.length;
       wordCount.textContent = text ? text.split(/\s+/).length : 0;
-    });
+    }
 
     // Expression Tag Insertion
     function insertTag(tag, isSelfClosing = false) {
       const start = scriptInput.selectionStart;
       const end = scriptInput.selectionEnd;
       const selectedText = scriptInput.value.substring(start, end);
-      let insertion = '';
-
-      if (isSelfClosing) {
-        insertion = `<${tag} 1s>`;
-      } else if (selectedText.length > 0) {
-        insertion = `<${tag}>${selectedText}</${tag}>`;
-      } else {
-        insertion = `<${tag}>yahan bolo</${tag}>`;
-      }
+      let insertion = isSelfClosing ? `<${tag} 1s>` : (selectedText.length > 0 ? `<${tag}>${selectedText}</${tag}>` : `<${tag}>yahan bolo</${tag}>`);
 
       scriptInput.setRangeText(insertion, start, end, 'end');
       scriptInput.focus();
-      scriptInput.dispatchEvent(new Event('input'));
+      localStorage.setItem('voice_studio_saved_script', scriptInput.value);
+      updateCounts();
     }
 
     // Quick Scripts
     function loadScriptPreset(type) {
       if (type === 'gaming') {
-        scriptInput.value = "<excited>Bhai sahab! Dekho samne pura squad rush kar raha hai!</excited> <pause 1s> <shout>Headshot connect hua!</shout> Bhai video ko like aur subscribe zaroor kar dena!";
+        scriptInput.value = "<excited>Bhai sahab! Dekho samne pura squad rush kar raha hai!</excited> <pause 1s> <shout>Headshot connect hua!</shout> Video ko like aur subscribe zaroor kar dena!";
       } else if (type === 'leaks') {
-        scriptInput.value = "<curious>Kya aapko pata hai?</curious> Agle update me naya map aur new character aane wala hai! <pause 1s> Details dekh ke hosh ud jayenge!";
+        scriptInput.value = "<curious>Kya aapko pata hai?</curious> Agle update me naya map aane wala hai! <pause 1s> Details dekh ke hosh ud jayenge!";
       } else if (type === 'story') {
         scriptInput.value = "<whisper>Raat ke theek 12 baje...</whisper> jungle ke us purane makan se ek ajeeb si aawaz aayi. <pause 1s> Koi toh tha wahan!";
       }
-      scriptInput.dispatchEvent(new Event('input'));
+      localStorage.setItem('voice_studio_saved_script', scriptInput.value);
+      updateCounts();
     }
 
-    // Dev mode toggle for testing ads
+    // Dev mode toggle
     function toggleDevAds() {
       adsEnabled = !adsEnabled;
       document.getElementById('devAdsLabel').textContent = adsEnabled ? "Ads: ON" : "Ads: OFF";
@@ -416,7 +423,7 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
     }
     checkApiKey();
 
-    // Generate Button Click Flow
+    // Generate Click
     function handleGenerateClick() {
       const text = scriptInput.value.trim();
       if (!text) {
@@ -425,69 +432,87 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
       }
 
       if (adsEnabled) {
-        startAdFlow();
+        localStorage.setItem('voice_ad_state', 'step1_waiting');
+        showModalForStep(1);
       } else {
         runVoiceGeneration();
       }
     }
 
-    // 2-Step Rewarded Ads Flow
-    function startAdFlow() {
-      currentAdStep = 1;
-      remainingTime = 5;
+    function showModalForStep(step) {
       clearInterval(timerInterval);
-      
-      adStepIndicator.textContent = "1";
-      document.getElementById('adActionTitle').textContent = "Sponsor Link 1 Required";
-      openAdBtnText.textContent = "Open Sponsor Ad 1";
-      openAdBtn.disabled = false;
       timerContainer.classList.add('hidden');
       timerBar.style.width = '0%';
-      
+      openAdLink.style.pointerEvents = 'auto';
+      openAdLink.classList.remove('opacity-60');
+
+      if (step === 1) {
+        adStepIndicator.textContent = "1";
+        adActionTitle.textContent = "Sponsor Link 1 Required";
+        openAdBtnText.textContent = "Open Sponsor Ad 1";
+      } else {
+        adStepIndicator.textContent = "2";
+        adActionTitle.textContent = "Final Sponsor Link 2";
+        openAdBtnText.textContent = "Open Sponsor Ad 2";
+      }
       adModal.classList.remove('hidden');
     }
 
     function closeAdModal() {
       clearInterval(timerInterval);
+      localStorage.removeItem('voice_ad_state');
+      localStorage.removeItem('voice_ad_timestamp');
       adModal.classList.add('hidden');
     }
 
-    function handleAdClick() {
-      // Open Monetag Direct link in new window/tab
-      window.open(MONETAG_DIRECT_LINK, '_blank');
+    // Handle Ad Click - Sets timestamp
+    function handleAdClick(e) {
+      const current = localStorage.getItem('voice_ad_state');
+      localStorage.setItem('voice_ad_timestamp', Date.now().toString());
 
-      // Start 5s countdown
-      openAdBtn.disabled = true;
-      openAdBtnText.textContent = "Ad Opened! Please wait...";
+      if (current === 'step1_waiting') {
+        localStorage.setItem('voice_ad_state', 'step1_opened');
+      } else if (current === 'step2_waiting') {
+        localStorage.setItem('voice_ad_state', 'step2_opened');
+      }
+
       timerContainer.classList.remove('hidden');
-      
-      remainingTime = 5;
-      timerSecondsText.textContent = remainingTime + "s";
-      timerBar.style.width = '0%';
+      timerSecondsText.textContent = "Checking visit...";
+      timerBar.style.width = '50%';
+    }
 
-      timerInterval = setInterval(() => {
-        remainingTime--;
-        timerSecondsText.textContent = remainingTime + "s";
-        timerBar.style.width = ((5 - remainingTime) / 5 * 100) + '%';
+    // Auto-Resume when user returns back to app
+    window.addEventListener('focus', checkPendingAdState);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        checkPendingAdState();
+      }
+    });
 
-        if (remainingTime <= 0) {
-          clearInterval(timerInterval);
-          if (currentAdStep === 1) {
-            // Move to Step 2
-            currentAdStep = 2;
-            adStepIndicator.textContent = "2";
-            document.getElementById('adActionTitle').textContent = "Final Sponsor Link 2";
-            openAdBtnText.textContent = "Open Sponsor Ad 2";
-            openAdBtn.disabled = false;
-            timerContainer.classList.add('hidden');
-            timerBar.style.width = '0%';
-          } else {
-            // Both Ads completed
-            closeAdModal();
-            runVoiceGeneration();
-          }
+    function checkPendingAdState() {
+      const state = localStorage.getItem('voice_ad_state');
+      const timeStr = localStorage.getItem('voice_ad_timestamp');
+      if (!state || !timeStr) return;
+
+      const elapsedSec = (Date.now() - parseInt(timeStr, 10)) / 1000;
+
+      // Agar user 3 second se zyada ad page par raha
+      if (elapsedSec >= 3) {
+        if (state === 'step1_opened') {
+          localStorage.setItem('voice_ad_state', 'step2_waiting');
+          localStorage.removeItem('voice_ad_timestamp');
+          showModalForStep(2);
+        } else if (state === 'step2_opened') {
+          localStorage.removeItem('voice_ad_state');
+          localStorage.removeItem('voice_ad_timestamp');
+          closeAdModal();
+          runVoiceGeneration();
         }
-      }, 1000);
+      } else {
+        // Agar turant bina wait kiye back aa gaya
+        if (state === 'step1_opened') showModalForStep(1);
+        if (state === 'step2_opened') showModalForStep(2);
+      }
     }
 
     // Voice Synthesis using Gemini or Browser TTS
@@ -502,7 +527,6 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
 
       try {
         if (key) {
-          // Gemini API Call
           const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -535,7 +559,6 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
           }
         }
         
-        // Fallback to high-quality Speech Synthesis if no key or error
         generateBrowserSpeechFallback(text, voice);
 
       } catch (err) {
@@ -554,7 +577,6 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
         return;
       }
 
-      // Strip XML expression tags for browser voice
       const cleanText = text.replace(/<[^>]*>/g, '');
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'hi-IN';
@@ -628,7 +650,6 @@ Upar diye gaye tags jaise <whisper>chupchap suno</whisper> ya <excited>bhai saha
       const bitsPerSample = 16;
       const dataSize = bytes.length;
 
-      // RIFF header
       writeString(view, 0, 'RIFF');
       view.setUint32(4, 36 + dataSize, true);
       writeString(view, 8, 'WAVE');
